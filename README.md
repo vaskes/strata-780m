@@ -163,7 +163,7 @@ beyond ~85 prompt tokens dies — see [rocBLAS](#known-blocker-rocblas-on-gfx110
 `llama.cpp` `0.3.0-dev (build 10675, commit 90c26fcd4)`, ROCm 7.2.4, serving the
 `Qwen3.8-Flash-Next` family on the same 780M.
 
-The unit that shows how llama + Qwen Flash was launched is preserved verbatim in
+The launch config is preserved verbatim in
 [`systemd/llama-qwen38-flash.service`](systemd/llama-qwen38-flash.service):
 
 ```ini
@@ -184,15 +184,8 @@ ExecStart=/opt/llama.cpp-test/build/bin/llama-server \
     -b 2048 --host 0.0.0.0 --port 8083
 ```
 
-Other llama.cpp units from the same box, kept as variants:
-
-| unit | model | port |
-|---|---|---|
-| [`llama-qwen38-flash.service`](systemd/llama-qwen38-flash.service) | Qwen3.8-Flash-Next UD-IQ4_XS, 256K ctx | 8083 |
-| [`llama-rocm.service`](systemd/llama-rocm.service) | Qwen3.8-27B-Q4_K_M via ROCm in Docker | 8080 |
-| [`llama-ornith.service`](systemd/llama-ornith.service) | Ornith 1.5 35B-A3B Uncensored Q8_0, 512K via YaRN | 8080 |
-| [`llama-qwen-heretic.service`](systemd/llama-qwen-heretic.service) | Qwen3.6-35B-A3B Heretic Q8_0 | 8080 |
-| [`llama-qwen38.service`](systemd/llama-qwen38.service) | Qwen3.8-27B-Q4_K_M | 8082 |
+Other llama.cpp units from the same box are deliberately not here — this repo is
+about Flash-Next on the 780M, not about everything else that ran on it.
 
 > **Provenance of the 9 tok/s figure.** The Q8_0 llama.cpp number is the operator's
 > run on this box; the per-request logs were not preserved, and no Q8_0 build of
@@ -326,7 +319,7 @@ to a model this size without spending several thousand dollars on silicon.
 ## Layout
 
 ```
-systemd/   llama.cpp units from llmhost2, verbatim (flash + variants)
+systemd/   the llama.cpp launch config for Qwen3.8-Flash-Next on the 780M
 scripts/   Strata build/run scripts, benchmarks, and the two GPU probes
 docs/      full investigation report: measurements, packaging fixes, dead ends
 ```

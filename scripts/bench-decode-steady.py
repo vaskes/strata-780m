@@ -4,10 +4,10 @@
 29-token generations are mostly ramp (first token, then MTP has to warm). This measures
 the number that actually matters for typing speed, and repeats it so the spread is visible.
 """
-import json, re, subprocess, time, urllib.request
+import json, os, re, subprocess, time, urllib.request
 
 URL = "http://127.0.0.1:8080/v1/chat/completions"
-KEY = "vaskes-strata-780m"
+KEY = os.environ.get("STRATA_API_KEY", "vaskes-strata-780m")
 MODEL = "qwen3.8-flash-next-unsloth-ud-iq4_xs"
 LOG = "/data/state/strata/launch/docker.engine.log"
 PROMPT = "Explain how a mixture-of-experts model routes tokens. "

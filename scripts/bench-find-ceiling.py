@@ -4,10 +4,10 @@
 prefill on long prompts dies in rocBLAS on gfx1103 (gfx1103 is not in the official ROCm
 rocBLAS arch list), so this walks short->long and stops at the first failure.
 """
-import json, re, subprocess, time, urllib.request
+import json, os, re, subprocess, time, urllib.request
 
 URL = "http://127.0.0.1:8080/v1/chat/completions"
-KEY = "vaskes-strata-780m"
+KEY = os.environ.get("STRATA_API_KEY", "vaskes-strata-780m")
 MODEL = "qwen3.8-flash-next-unsloth-ud-iq4_xs"
 LOG = "/data/state/strata/launch/docker.engine.log"
 

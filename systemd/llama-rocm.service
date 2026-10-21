@@ -1,0 +1,37 @@
+[Unit]
+Description=LLaMA.cpp ROCm Server (780M Docker)
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/llama-docker
+Environment="MODEL=/opt/models/Qwen3.8-27B-Q4_K_M.gguf"
+ExecStartPre=/usr/bin/docker compose up -d
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/docker exec llama-docker /workspace/llama.cpp/build/bin/llama-server \
+  --model /opt/models/Qwen3.8-27B-Q4_K_M.gguf \
+  --alias Qwen3.8-27B-Q4_K_M-ROCm \
+  --mmproj /opt/models/mmproj-Qwen3.8-27B-Q8_0.gguf \
+  --n-gpu-layers 99 \
+  --ctx-size 262144 \
+  -n 65536 \
+  --cache-type-k q8_0 \
+  --cache-type-v q8_0 \
+  --cache-ram 0 \
+  --parallel 1 \
+  --no-warmup \
+  --flash-attn on \
+  --agent \
+  --mcp-servers-config /workspace/mcp-servers.json \
+  --jinja \
+  -b 256 \
+  --host 0.0.0.0 \
+  --port 8080
+ExecStop=/usr/bin/docker exec llama-docker pkill -f llama-server
+ExecStopPost=/bin/sleep 2
+ExecStopPost=/usr/bin/docker compose down --timeout 10
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

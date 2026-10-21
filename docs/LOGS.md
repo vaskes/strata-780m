@@ -45,6 +45,12 @@ hipDeviceSynchronize: 0 (no error)
 device: gfx1103  arch 11.0  CUs 6  mem 54.8 GB
 ```
 
+> **`CUs 6` here, `12` in the README.** `rocminfo` reports 12 compute units for the
+> gfx1103 agent (matching the 780M spec), while `hipDeviceProp_t.multiProcessorCount`
+> — the field printed above — reports 6. The two ROCm interfaces disagree on this box.
+> The probe value is quoted verbatim because this is a verbatim probe log; the README
+> uses the spec-matching 12. `scripts/cu-probe.c` prints both.
+
 `scripts/gemm-shapes-probe.cpp` — the same walk over M, which is what Strata's prefill
 grows. Compile inside the ROCm image:
 

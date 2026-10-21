@@ -43,14 +43,22 @@ desk; there is no other way to get there without several-thousand-dollar hardwar
 
 ```
 CPU      AMD Ryzen 7 8700G — Zen 4, 8 cores / 16 threads, 1 NUMA node
-GPU      Radeon 780M, RDNA3, gfx1103 (Phoenix1, 0x7e66), 12 compute units, unified memory
+GPU      Radeon 780M, RDNA3, gfx1103 (Phoenix1, 0x7e66), unified memory, 2.9 GHz
 RAM      2 × 32 GB Kingston KF560C36-32, DDR5 **4800 MT/s, dual channel** (P0 CHANNEL A + B)
          58.2 GiB usable (MemTotal 61 070 256 kB)
-Memory   DDR5-4800 × 2 channels × 8 bytes = 76.8 GB/s theoretical
+Memory   system DDR5-4800 × 2 channels × 8 bytes    = 76.8 GB/s theoretical
+         **but the iGPU sees only 38.4 GB/s** — HIP reports memoryBusWidth 64 bit
+         at 2400 MHz, exactly half the system bus. See the bandwidth section below.
 Kernel   7.0.0-38-generic
 amdgpu   cwsr_enable=0, ttm.pages_limit = 13 369 344 pages (51.0 GiB GTT)
 ROCm     7.2.4 host (/opt/rocm-7.2.4), hipBLASLt 1.2.0 — not usable for gfx1103
 ```
+
+> **Compute units: 12 or 6?** `rocminfo` reports **12** compute units for the gfx1103
+> agent, which matches the Radeon 780M's spec sheet. `hipGetDeviceProperties().multiProcessorCount`
+> reports **6**. The two ROCm interfaces disagree on this box and we did not chase down
+> which is authoritative — `scripts/cu-probe.c` reproduces both numbers. It does not
+> affect anything else here.
 
 No discrete GPU, no NVIDIA driver (`nvidia-smi` fails). Everything below is the iGPU
 sharing the same DDR5 the CPU cores use.
@@ -112,8 +120,12 @@ workdir    /opt/strata-780m/   (source, build tree, logs)
 ### How it is launched
 
 ```bash
-TBLMODE=off IGPUSET=1 WMMA=1 VRAMRES=6144 CONTEXT=32k bash scripts/run-strata-780m.sh
+TBLMODE=off IGPUSET=1 WMMA=1 VRAMRES=6144 CTX=32k bash scripts/run-strata-780m.sh
 ```
+
+Those are the script's defaults, so a bare `bash scripts/run-strata-780m.sh` reproduces
+the measured configuration. Note the variable is `CTX`, not `CONTEXT` (`CONTEXT` is the
+name of the *container* env var the script sets from it).
 
 which expands to:
 
@@ -232,13 +244,23 @@ Not the engine. Three observations pin it down:
    machines. The memory subsystem delivers a roughly *fixed* amount of expert data per
    second; a fatter quant simply buys proportionally fewer tokens.
 
-Why the ceiling is where it is: on an APU the iGPU has no VRAM of its own and reaches
-DDR5 over a path far narrower than the Zen 4 cores get — and the access pattern is
-nothing like streaming. Each token wants a few megabytes of scattered 3–4 MB expert
-blobs pulled from a 93 GB file, which lands far below the 76.8 GB/s the DDR5-4800
-dual-channel bus can do sequentially. Add the same DDR5 being shared with 8 Zen 4
-cores that want their own cache and memory traffic, and ~10–15 GB/s of useful expert
-reads is the real number.
+Why the ceiling is where it is: **the iGPU gets half the memory bus.** HIP reports
+`memoryBusWidth = 64 bit` at 2400 MHz, i.e. a theoretical peak of **38.4 GB/s** — against
+the 76.8 GB/s the DDR5-4800 dual-channel system bus can do. The 780M is not memory-bound
+in principle; it is memory-bound *by construction*, because it reaches memory through
+half as wide a path as the Zen 4 cores sharing that same DDR5.
+
+On top of that, the access pattern wastes what little there is. Each token wants a few
+megabytes of scattered 3–4 MB expert blobs pulled out of a 93 GB file, which lands far
+below sequential peak even on a full-width bus. Our ~15 GB/s of measured expert traffic
+is about **39% of the 38.4 GB/s peak** — a completely normal figure for scattered reads,
+and the reason raising the peak would not help much.
+
+```
+system DDR5 bus     76.8 GB/s   ← what the CPU cores see
+iGPU path           38.4 GB/s   ← what the GPU sees (HIP memoryBusWidth = 64 bit)
+measured expert BW  ~15 GB/s    ← 39% of the GPU peak, scattered access
+```
 
 ### What makes it worse here than upstream
 
@@ -332,9 +354,13 @@ to a model this size without spending several thousand dollars on silicon.
 ```
 docs/GRUB.md  kernel parameters — THE prerequisite, read first
 systemd/   the llama.cpp launch config for Qwen3.8-Flash-Next on the 780M
-scripts/   Strata build/run scripts, benchmarks, and the two GPU probes
+scripts/   Strata build/run scripts, benchmarks, and the GPU probes
 docs/      full investigation report: measurements, packaging fixes, dead ends
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 vaskes / Kuduza Ai Lab — https://kuduza.com
 
 ## Credits
 

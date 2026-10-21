@@ -9,6 +9,7 @@ Cells match docs/RADEON_780M.md §7 so the numbers are comparable with the commu
 run on a Ryzen 7 8745HS: 4K and 32K prompts, 256 generated tokens, greedy decoding.
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -16,7 +17,7 @@ import time
 import urllib.request
 
 URL = "http://127.0.0.1:8080/v1/chat/completions"
-KEY = "vaskes-strata-780m"
+KEY = os.environ.get("STRATA_API_KEY", "vaskes-strata-780m")
 MODEL = "qwen3.8-flash-next-unsloth-ud-iq4_xs"
 GEN = 256
 

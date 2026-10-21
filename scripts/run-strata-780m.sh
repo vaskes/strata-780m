@@ -29,10 +29,10 @@ NAME=strata-780m
 MODEL_DIR=/opt/models/Qwen3.8-Flash-Next-GGUF
 CTX="${CTX:-32k}"
 PORT="${PORT:-8080}"
-API_KEY=vaskes-strata-780m
+API_KEY="${API_KEY:-vaskes-strata-780m}"
 
 # engine options + STRATA_* vars, passed as repeated `launch --set KEY=VALUE`
-STRATA_SET_VALUE="spec=2 lookup-chain=4 spec-min-p=0.35 vram-reserve-mib=${VRAMRES:-6144} STRATA_HIPBLASLT_TABLE=${TBLMODE:-off} STRATA_IGPU_PROMPT_SET=${IGPUSET:-0}"
+STRATA_SET_VALUE="spec=2 lookup-chain=4 spec-min-p=0.35 vram-reserve-mib=${VRAMRES:-6144} STRATA_HIPBLASLT_TABLE=${TBLMODE:-off} STRATA_IGPU_PROMPT_SET=${IGPUSET:-1}"
 
 log() { printf '\n\033[1;34m== %s\033[0m\n' "$*"; }
 
@@ -61,13 +61,13 @@ docker run -d --name "$NAME" \
   -e "API_KEY=${API_KEY}" \
   -e STRATA_EXPERIMENTAL_GFX1103=1 \
   -e "STRATA_SET=${STRATA_SET_VALUE}" \
-  -e "STRATA_IGPU_PROMPT_SET=${IGPUSET:-0}" \
+  -e "STRATA_IGPU_PROMPT_SET=${IGPUSET:-1}" \
   -e "STRATA_HIPBLASLT_TABLE=${TBLMODE:-off}" \
-  -e "STRATA_HIP_WMMA=${WMMA:-0}" \
-  -e "STRATA_PF_GEMM=${WMMA:-0}" \
-  -e "STRATA_PA_FAST=${WMMA:-0}" \
-  -e "STRATA_SELECT_WMMA=${WMMA:-0}" \
-  -e "STRATA_HC_UPMIX=${WMMA:-0}" \
+  -e "STRATA_HIP_WMMA=${WMMA:-1}" \
+  -e "STRATA_PF_GEMM=${WMMA:-1}" \
+  -e "STRATA_PA_FAST=${WMMA:-1}" \
+  -e "STRATA_SELECT_WMMA=${WMMA:-1}" \
+  -e "STRATA_HC_UPMIX=${WMMA:-1}" \
   --restart unless-stopped \
   "$IMG"
 

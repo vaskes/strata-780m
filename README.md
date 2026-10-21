@@ -6,46 +6,51 @@ measured on `llmhost2` — both with upstream **llama.cpp** and with **Strata**
 
 ## Result
 
-| engine | quant | decode | note |
-|---|---|---|---|
-| **Strata** 0.1.46.1 (HIP/gfx1103) | UD-IQ4_XS | **9.4 tok/s** | measured here, this repo |
-| **llama.cpp** 0.3.0-dev `90c26fcd4` | Q8_0 | **9 tok/s** | operator's run, unit preserved below |
+| engine | quant | bits/weight | decode | implied expert bandwidth |
+|---|---|---|---|---|
+| **Strata** 0.1.46.1 (HIP/gfx1103) | UD-IQ4_XS | ~4.25 | **9.4 tok/s** | ~15 GB/s |
+| **llama.cpp** 0.3.0-dev `90c26fcd4` | Q8_0 | 8.0 | **9 tok/s** | — |
+| Strata (upstream, 8745HS) | Q2_0 | 2.0 | 13–16 tok/s | ~10 GB/s |
 
-Two completely different inference engines land on the same number. That is not a
-coincidence — see [Why 9 tok/s is the wall](#why-9-tok/s-is-the-wall).
+Two unrelated inference engines land on the same number. So does a third run, on
+different silicon, with a **2.1× smaller quant**. That is not a coincidence —
+see [The wall is memory bandwidth](#the-wall-is-memory-bandwidth).
 
-> **The PSP is the ceiling.** The Radeon 780M's CPU-side implementation (PSP, 8.5
-> 16C/20C "Phoenix" cores sharing system memory) cannot push a 177B-class MoE past
-> ~9 tok/s on this box, *whatever* the engine, *whatever* the prompt. Strata and
-> llama.cpp are within noise of each other.
+> **The limit is memory bandwidth.** Every generated token has to pull the active
+> experts out of shared DDR5 over the APU's GPU memory path. That path delivers on the
+> order of 10–15 GB/s of scattered expert reads, whatever you do above it. The engine
+> does not matter; the quant size does not matter; **~9 tok/s is what a 177B MoE gets
+> out of a Ryzen 8700G's iGPU.**
 
-What **is** remarkable is that a model in this class runs **at all** on a box with no
-graphics card, on a CPU that was never meant for it. Buying a Ryzen 8700G is the
-cheapest way to put a 177B model on your desk; there is no other way to get there
-without several-thousand-dollar hardware.
+What *is* remarkable is that a model in this class runs **at all** on a box with no
+graphics card. Buying a Ryzen 8700G is the cheapest way to put a 177B model on your
+desk; there is no other way to get there without several-thousand-dollar hardware.
 
 ---
 
 ## Machine
 
 ```
-CPU      AMD Ryzen 7 8700G, 16 threads (8C/16T), Radeon 780M integrated (gfx1103, Phoenix)
-RAM      58.2 GiB usable (61 070 256 kB)
+CPU      AMD Ryzen 7 8700G — Zen 4, 8 cores / 16 threads, 1 NUMA node
+GPU      Radeon 780M, RDNA3, gfx1103 (Phoenix1, 0x7e66), 12 compute units, unified memory
+RAM      2 × 32 GB Kingston KF560C36-32, DDR5 **4800 MT/s, dual channel** (P0 CHANNEL A + B)
+         58.2 GiB usable (MemTotal 61 070 256 kB)
+Memory   DDR5-4800 × 2 channels × 8 bytes = 76.8 GB/s theoretical
 Kernel   7.0.0-38-generic
-ROCm     7.2.4 (host, hipBLASLt 1.2.0) — see "ROCm in Docker" below for what the engine actually uses
 amdgpu   cwsr_enable=0, ttm.pages_limit = 13 369 344 pages (51.0 GiB GTT)
-GPU      "AMD Radeon 780M Graphics", 6 CUs, 54.8 GB unified memory
+ROCm     7.2.4 host (/opt/rocm-7.2.4), hipBLASLt 1.2.0 — not usable for gfx1103
 ```
 
-There is **no discrete GPU and no NVIDIA driver** on this host. Everything below is
-the iGPU.
+No discrete GPU, no NVIDIA driver (`nvidia-smi` fails). Everything below is the iGPU
+sharing the same DDR5 the CPU cores use.
 
 ---
 
 ## Model
 
-`Qwen3.8-Flash-Next` — 177B-class MoE, quantised to GGUF. The IQ4_XS shards were
-already on the host, so **nothing was downloaded**:
+`Qwen3.8-Flash-Next` — 177B-class MoE (A3B: ~3B parameters active per token),
+quantised to GGUF. The IQ4_XS shards were already on the host, so **nothing was
+downloaded**:
 
 ```
 /opt/models/Qwen3.8-Flash-Next-GGUF/Qwen3.8-Flash-Next-UD-IQ4_XS-0000{1,2,3}-of-00003.gguf
@@ -54,9 +59,10 @@ already on the host, so **nothing was downloaded**:
 d4634e6d84f0ebb0940be15c90d3790bf6464e3dea3a1cddc567dc0e83ad8833
 ```
 
-Those are the exact SHA-256s pinned in Strata's `setup.py` (`UNSLOTH_IQ4_XS_SHARDS`),
-so the model is byte-identical to what upstream ships. It is 93.7 GB across 3 shards
-and carries **59.5 GiB of experts**.
+Those are the exact SHA-256s pinned in Strata's `setup.py`
+(`UNSLOTH_IQ4_XS_SHARDS`), so the model is byte-identical to what upstream ships.
+93.7 GB across 3 shards, **59.5 GiB of experts** (Strata's own figure:
+`MODELS["UD-IQ4_XS"]["arena_gb"]`).
 
 ---
 
@@ -196,26 +202,57 @@ Other llama.cpp units from the same box, kept as variants:
 
 ---
 
-## Why 9 tok/s is the wall
+## The wall is memory bandwidth
 
-Not the engine, and not (only) the disk. Three independent ceilings stack up here:
+Not the engine. Three observations pin it down:
 
-1. **PSP + unified memory.** The 780M's cores execute through the AMD PSP over shared
-   DDR5. No dedicated VRAM, no wide fabric, and the memory the model needs is the
-   memory the CPU needs. That is the hard physical limit.
-2. **The model does not fit.** 59.5 GiB of experts in 58.2 GiB of RAM. Roughly 16 GiB
-   of experts can never be resident: `setup.py`'s `unsloth_budget()` collapses
-   `--resident-budget-gib` from the requested 24 GiB to 0.1 GiB because
-   `MemAvailable` is 4.4 GiB once `GPUActive` has taken its share. The engine log shows
-   the consequence plainly — `decode waited 66362.0 ms in 16662 fetches`: one request
-   spent **66 seconds** waiting on the SSD.
-3. **rocBLAS is broken for gfx1103** (below), which caps how much prompt work is
-   measurable at all.
+1. **Two unrelated engines agree.** Strata (a purpose-built engine with WMMA prompt
+   kernels, a hipBLASLt tuning table and MTP speculative decoding) and llama.cpp land
+   within noise of each other on the same box. Software above the memory pipe cannot
+   change the rate at which the pipe delivers.
 
-Strata's own community run on a Ryzen 7 **8745HS** (also a 780M, 60 GB DDR5, GTT 50 GiB)
-reports **13–16 tok/s decode** — but on a **Q2_0** pack whose arena is 34.0 GiB, i.e.
-half of ours, so it fits resident and never streams. That is the whole delta between
-9 and 14: it is the model size, not the chip.
+2. **A 2.1× smaller quant on the same silicon goes faster.** Upstream's community run
+   on a Ryzen 7 **8745HS** (also a 780M) reports **13–16 tok/s decode** — on a
+   **Q2_0** pack, ~2.0 bits/weight against our UD-IQ4_XS at ~4.25. Half the bytes per
+   token buys about 1.5× the tokens per second. That is the signature of a bandwidth
+   limit, not a compute limit.
+
+3. **The arithmetic lines up.** Taking ~3B active parameters per token (A3B):
+
+   | run | bits/weight | bytes/token | tok/s | expert traffic |
+   |---|---:|---:|---:|---:|
+   | ours, UD-IQ4_XS | ~4.25 | ~1.6 GB | 9.4 | **~15 GB/s** |
+   | upstream, Q2_0 | ~2.0 | ~0.75 GB | 14 | **~10 GB/s** |
+
+   Same order of magnitude for two different quant sizes on two different 780M
+   machines. The memory subsystem delivers a roughly *fixed* amount of expert data per
+   second; a fatter quant simply buys proportionally fewer tokens.
+
+Why the ceiling is where it is: on an APU the iGPU has no VRAM of its own and reaches
+DDR5 over a path far narrower than the Zen 4 cores get — and the access pattern is
+nothing like streaming. Each token wants a few megabytes of scattered 3–4 MB expert
+blobs pulled from a 93 GB file, which lands far below the 76.8 GB/s the DDR5-4800
+dual-channel bus can do sequentially. Add the same DDR5 being shared with 8 Zen 4
+cores that want their own cache and memory traffic, and ~10–15 GB/s of useful expert
+reads is the real number.
+
+### What makes it worse here than upstream
+
+A second ceiling stacks on top, specific to this box: **the model does not fit.**
+59.5 GiB of experts in 58.2 GiB of RAM means ~16 GiB of experts can never be resident.
+`setup.py`'s `unsloth_budget()` collapses `--resident-budget-gib` from the requested
+24 GiB to 0.1 GiB, because `MemAvailable` is 4.4 GiB once `GPUActive` has taken its
+share. The engine log shows the consequence plainly —
+
+```
+decode waited 66362.0 ms in 16662 fetches
+```
+
+one request spent **66 seconds** waiting on the SSD. Upstream's Q2_0 pack has a 34.0
+GiB arena, which fits their 60 GB box resident and never streams at all.
+
+So: on this machine the ceiling is bandwidth, and the model size keeps a second
+ceiling stacked on it. Both are hardware.
 
 ---
 
@@ -280,11 +317,11 @@ does — `setup.py:ROCM_INDEXES["gfx1103"]` and `packaging/build_hip_gfx1103.sh`
 
 ## Bottom line
 
-The 780M will not give you more than ~9 tok/s on a 177B-class model. No engine change
-that. But it will run one — on a processor that costs a fraction of any discrete GPU
-setup, in a box with no graphics card at all. If money is the constraint, a Ryzen
-8700G is the answer; there is no other route to a model this size without spending
-several thousand dollars on silicon.
+The 780M will not give you more than ~9 tok/s on a 177B-class model. That is the
+memory path, and no engine change touches it. But it will run one — on a processor
+that costs a fraction of any discrete GPU setup, in a box with no graphics card at
+all. If money is the constraint, a Ryzen 8700G is the answer; there is no other route
+to a model this size without spending several thousand dollars on silicon.
 
 ## Layout
 

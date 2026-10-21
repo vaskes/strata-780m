@@ -1,0 +1,9 @@
+*.bin
+*.o
+build/
+build-780m/
+stage/
+engine-pkg/
+llama-cpp-src/
+strata-bundle.tar.gz
+cpython*.tar.gz

@@ -1,0 +1,91 @@
+context: /tmp/strata-docker-ctx.TjbZhZ
+flavor hip, base ubuntu:24.04, engine(s): 0.1.46.1-linux-x86_64-hip-gfx1103, tag strata:0.2.1-rocm-gfx1103
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 8.45kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [verify 1/5] FROM docker.io/library/ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+#4 resolve docker.io/library/ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 712.91MB 1.0s done
+#5 DONE 1.0s
+
+#6 [terminal 2/6] RUN apt-get update  && apt-get install -y --no-install-recommends python3 ca-certificates  && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [terminal 3/6] COPY terminal-src/ /src/
+#7 CACHED
+
+#8 [terminal 4/6] COPY pb-cache/ /pb-cache/
+#8 CACHED
+
+#9 [terminal 5/6] RUN python3 /src/packaging/package_terminal.py --out /out --cache /pb-cache  && mkdir -p /opt/strata  && tar -xzf /out/strata-terminal-*-linux-x86_64.tar.gz -C /opt/strata  && mv /opt/strata/strata-terminal-* /opt/strata/terminal  && /opt/strata/terminal/bin/strata --version
+#9 CACHED
+
+#10 [terminal 6/6] RUN cd /opt/strata/terminal && STRATA_CONTROL_INSTALL=1 STRATA_INSTALL_DIR=/opt/strata/seed PYTHONNOUSERSITE=1       /opt/strata/terminal/python/bin/python3 -c "import setup; print(setup.get_llama_cpp())"  && rm -rf /opt/strata/seed/third_party/*.zip*  && cd /opt/strata/seed/third_party/llama.cpp  && find . -mindepth 1 -maxdepth 1 ! -name gguf-py ! -name ggml ! -name 'LICENSE*' -exec rm -rf {} +  && find ggml -mindepth 1 -depth ! -type d ! -name CMakeLists.txt -delete && find ggml -mindepth 1 -type d -empty -delete  && du -sh /opt/strata/seed
+#10 CACHED
+
+#11 [verify 2/5] COPY --from=terminal /opt/strata/terminal /opt/strata/terminal
+#11 CACHED
+
+#12 [verify 3/5] COPY terminal-src/packaging/package_engine.py terminal-src/packaging/binary_deps.py /opt/strata/terminal/packaging/
+#12 CACHED
+
+#13 [verify 4/5] COPY engine/ /engine/
+#13 DONE 4.6s
+
+#14 [verify 5/5] RUN set -e; n=0; for d in /engine/*/; do       echo "== $d";       /opt/strata/terminal/python/bin/python3 /opt/strata/terminal/packaging/package_engine.py --verify "$d";       /opt/strata/terminal/python/bin/python3 /opt/strata/terminal/packaging/binary_deps.py "$d";       n=$((n+1));     done; [ "$n" -ge 1 ] || { echo "no engine package in the build context (engine/<package>/engine-component.json)"; exit 1; }
+#14 0.348 == /engine/0.1.46.1-linux-x86_64-hip-gfx1103/
+#14 0.900 /engine/0.1.46.1-linux-x86_64-hip-gfx1103: ok (274 files, manifest sha256 bdbbcba0a771de20db4f6e456a6096910025694184473cbe2aa4292762a329a7)
+#14 0.991 /engine/0.1.46.1-linux-x86_64-hip-gfx1103/: every imported library is bundled or belongs to the OS / GPU driver
+#14 DONE 1.0s
+
+#15 [stage-2 2/9] RUN set -e;     pkgs="tini ca-certificates libgomp1 libatomic1 libnuma1 zlib1g";     case "hip" in       cuda) ;;       hip)  pkgs="$pkgs libdrm2 libdrm-amdgpu1 libelf1t64 libtinfo6 libpci3" ;;       sycl) pkgs="$pkgs libze1 libze-intel-gpu1 intel-opencl-icd" ;;       *) echo "FLAVOR must be cuda, hip or sycl"; exit 1 ;;     esac;     apt-get update; apt-get install -y --no-install-recommends $pkgs;     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+#15 CACHED
+
+#16 [stage-2 3/9] COPY --from=terminal /opt/strata/terminal /opt/strata/terminal
+#16 CACHED
+
+#17 [stage-2 4/9] COPY --from=terminal /opt/strata/seed /opt/strata/seed
+#17 CACHED
+
+#18 [stage-2 5/9] COPY --from=verify /engine/ /opt/strata/components/engine/
+#18 DONE 1.5s
+
+#19 [stage-2 6/9] COPY docker/entrypoint.sh docker/healthcheck.sh /opt/strata/
+#19 DONE 0.0s
+
+#20 [stage-2 7/9] COPY docker/strata-wrapper.sh /usr/local/bin/strata
+#20 DONE 0.0s
+
+#21 [stage-2 8/9] RUN chmod 0755 /opt/strata/entrypoint.sh /opt/strata/healthcheck.sh /usr/local/bin/strata
+#21 DONE 0.1s
+
+#22 [stage-2 9/9] RUN set -e;     for d in /opt/strata/components/engine/*/; do       miss=$(find "$d" -type f ( -name 'strata*' -o -name '*.so' -o -name '*.so.*' ) ! -name '*.json' ! -name '*.txt' | while read -r f; do                head -c4 "$f" | grep -q ELF || continue;                LD_LIBRARY_PATH="$d" ldd "$f" 2>/dev/null | grep 'not found' | grep -v -E 'libcuda\.so|libnvidia|libnvcuvid|libze_intel_gpu|libhsa-runtime64|libdrm_amdgpu' | sed "s|^|$(basename "$f"): |";              done | sort -u);       if [ -n "$miss" ]; then echo "MISSING LIBRARIES in $d"; echo "$miss"; exit 1; fi;       echo "libraries of $d resolve inside this image";     done
+#22 0.281 libraries of /opt/strata/components/engine/0.1.46.1-linux-x86_64-hip-gfx1103/ resolve inside this image
+#22 DONE 0.3s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 9.9s done
+#23 exporting manifest sha256:df2198b92679b2bd10806f647d3af770fd542de16bcc6ae9976d43cf3e096bbb done
+#23 exporting config sha256:3a348d9a7d103437f746033645a9df09ef7ded48fd1f6ddccbba94371ce25e05 done
+#23 exporting attestation manifest sha256:1b823d39192f8c86cbf0777291940309d7742bdc01f6dd25999bf5f5f6751198 done
+#23 exporting manifest list sha256:bfc29a1e4ad1c93299150fa52f9664d30f1d3f24b09fadd98a500f9bb948b345 done
+#23 naming to docker.io/library/strata:0.2.1-rocm-gfx1103 done
+#23 unpacking to docker.io/library/strata:0.2.1-rocm-gfx1103
+#23 unpacking to docker.io/library/strata:0.2.1-rocm-gfx1103 1.0s done
+#23 DONE 11.0s
+built [strata:0.2.1-rocm-gfx1103] 1368234617 bytes
+Not pushed anywhere. Size on disk: 1368234617 bytes.

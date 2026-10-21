@@ -1,0 +1,6 @@
+warming up...
+done
+
+  ~   64 tok prompt : FAILED after  96.6s  (HTTP Error 503: Service Unavailable)
+
+largest prompt that completed: ~0 tokens

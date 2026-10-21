@@ -1,0 +1,22 @@
+10.1.0-full: Pulling from rocm/dev-ubuntu-24.04
+681b5b7fd85d: Pulling fs layer
+1a894b523bf8: Pulling fs layer
+367d1cbc74a0: Pulling fs layer
+ff86aceac716: Pulling fs layer
+edd1ed89f0d4: Pulling fs layer
+6aeb022e9d4b: Pulling fs layer
+681b5b7fd85d: Download complete
+1a894b523bf8: Download complete
+ff86aceac716: Download complete
+6aeb022e9d4b: Download complete
+edd1ed89f0d4: Download complete
+1a894b523bf8: Pull complete
+ff86aceac716: Pull complete
+edd1ed89f0d4: Pull complete
+6aeb022e9d4b: Pull complete
+367d1cbc74a0: Download complete
+367d1cbc74a0: Pull complete
+681b5b7fd85d: Pull complete
+Digest: sha256:5ed1362ea542a928651e4c710b44024ebe98870f74159cb70f0265aec8ef0abe
+Status: Downloaded newer image for rocm/dev-ubuntu-24.04:10.1.0-full
+docker.io/rocm/dev-ubuntu-24.04:10.1.0-full

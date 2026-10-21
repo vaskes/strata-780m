@@ -1,0 +1,166 @@
+context: /tmp/strata-docker-ctx.TtOyme
+flavor hip, base ubuntu:24.04, engine(s): 0.1.46.1-linux-x86_64-hip-gfx1103, tag strata:0.2.1-rocm-gfx1103
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 8.45kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [verify 1/5] FROM docker.io/library/ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+#4 resolve docker.io/library/ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac done
+#4 CACHED
+
+#5 [stage-2 2/9] RUN set -e;     pkgs="tini ca-certificates libgomp1 libatomic1 libnuma1 zlib1g";     case "hip" in       cuda) ;;       hip)  pkgs="$pkgs libdrm2 libdrm-amdgpu1 libelf1t64 libtinfo6 libpci3" ;;       sycl) pkgs="$pkgs libze1 libze-intel-gpu1 intel-opencl-icd" ;;       *) echo "FLAVOR must be cuda, hip or sycl"; exit 1 ;;     esac;     apt-get update; apt-get install -y --no-install-recommends $pkgs;     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+#5 CACHED
+
+#6 [internal] load build context
+#6 transferring context: 686.92MB 1.8s done
+#6 DONE 1.8s
+
+#7 [terminal 2/6] RUN apt-get update  && apt-get install -y --no-install-recommends python3 ca-certificates  && rm -rf /var/lib/apt/lists/*
+#7 CACHED
+
+#8 [terminal 3/6] COPY terminal-src/ /src/
+#8 CACHED
+
+#9 [terminal 4/6] COPY pb-cache/ /pb-cache/
+#9 DONE 1.5s
+
+#10 [terminal 5/6] RUN python3 /src/packaging/package_terminal.py --out /out --cache /pb-cache  && mkdir -p /opt/strata  && tar -xzf /out/strata-terminal-*-linux-x86_64.tar.gz -C /opt/strata  && mv /opt/strata/strata-terminal-* /opt/strata/terminal  && /opt/strata/terminal/bin/strata --version
+#10 2.444 Collecting certifi==2026.7.22 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 5))
+#10 2.742   Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+#10 3.817 Collecting charset-normalizer==3.5.1 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 7))
+#10 3.890   Downloading charset_normalizer-3.5.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (248 kB)
+#10 8.333 Collecting idna==3.20 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 9))
+#10 8.510   Downloading idna-3.20-py3-none-any.whl (69 kB)
+#10 10.74 Collecting jinja2==3.1.6 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 11))
+#10 10.81   Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+#10 16.16 Collecting linkify-it-py==2.2.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 13))
+#10 16.23   Downloading linkify_it_py-2.2.0-py3-none-any.whl (21 kB)
+#10 16.97 Collecting markdown-it-py==4.2.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 15))
+#10 17.04   Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+#10 21.25 Collecting markupsafe==3.0.3 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 17))
+#10 21.32   Downloading markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+#10 22.15 Collecting mdit-py-plugins==0.6.1 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 19))
+#10 22.22   Downloading mdit_py_plugins-0.6.1-py3-none-any.whl (66 kB)
+#10 24.47 Collecting mdurl==0.1.2 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 21))
+#10 24.54   Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+#10 40.08 Collecting numpy==2.5.3 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 23))
+#10 40.27   Downloading numpy-2.5.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+#10 569.0      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 41.8 kB/s  0:08:48
+#10 578.0 Collecting pillow==12.3.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 25))
+#10 578.1   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+#10 761.6      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 35.7 kB/s  0:03:03
+#10 762.2 Collecting platformdirs==4.13.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 27))
+#10 762.3   Downloading platformdirs-4.13.0-py3-none-any.whl (32 kB)
+#10 767.5 Collecting psutil==7.2.2 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 29))
+#10 767.6   Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
+#10 770.0 Collecting pygments==2.21.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 31))
+#10 770.1   Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+#10 802.7      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 43.6 kB/s  0:00:32
+#10 804.4 Collecting pyyaml==6.0.3 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 33))
+#10 804.5   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+#10 827.2      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 42.2 kB/s  0:00:22
+#10 862.8 Collecting regex==2026.9.10 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 35))
+#10 863.1   Downloading regex-2026.9.10-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (804 kB)
+#10 889.9      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 804.6/804.6 kB 32.3 kB/s  0:00:26
+#10 891.0 Collecting requests==2.34.2 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 37))
+#10 891.0   Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+#10 894.7 Collecting rich==15.0.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 39))
+#10 894.8   Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+#10 905.5 Collecting textual==8.2.8 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 41))
+#10 905.6   Downloading textual-8.2.8-py3-none-any.whl (731 kB)
+#10 927.6      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 731.4/731.4 kB 33.5 kB/s  0:00:21
+#10 929.2 Collecting tqdm==4.70.1 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 43))
+#10 929.3   Downloading tqdm-4.70.1-py3-none-any.whl (80 kB)
+#10 932.7 Collecting typing-extensions==4.16.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 45))
+#10 932.8   Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#10 935.6 Collecting urllib3==2.8.0 (from -r /src/packaging/locks/runtime-linux-x86_64-cp312.txt (line 47))
+#10 935.7   Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+#10 939.7 Installing collected packages: urllib3, typing-extensions, tqdm, textual, rich, requests, regex, pyyaml, pygments, psutil, platformdirs, pillow, numpy, mdurl, mdit-py-plugins, markupsafe, markdown-it-py, linkify-it-py, jinja2, idna, charset-normalizer, certifi
+#10 942.0 
+#10 942.0 Successfully installed certifi-2026.7.22 charset-normalizer-3.5.1 idna-3.20 jinja2-3.1.6 linkify-it-py-2.2.0 markdown-it-py-4.2.0 markupsafe-3.0.3 mdit-py-plugins-0.6.1 mdurl-0.1.2 numpy-2.5.3 pillow-12.3.0 platformdirs-4.13.0 psutil-7.2.2 pygments-2.21.0 pyyaml-6.0.3 regex-2026.9.10 requests-2.34.2 rich-15.0.0 textual-8.2.8 tqdm-4.70.1 typing-extensions-4.16.0 urllib3-2.8.0
+#10 942.0 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#10 942.0 
+#10 942.0 [notice] A new release of pip is available: 26.2.1 -> 26.2.2
+#10 942.0 [notice] To update, run: /tmp/strata-terminal-build-jhmb_5_y/strata-terminal-0.1.46.1-linux-x86_64/python/bin/python3 -m pip install --upgrade pip
+#10 942.1 No broken requirements found.
+#10 980.8 unpacking the interpreter
+#10 980.8 copying the application
+#10 980.8 installing the locked runtime wheels into the bundled interpreter (build time only)
+#10 980.8   deps ok
+#10 980.8 
+#10 980.8 /out/strata-terminal-0.1.46.1-linux-x86_64.tar.gz
+#10 980.8   bytes  98882606
+#10 980.8   sha256 da0e0da065233e521029bd840d860355c92cda721a1f6991cc6e923b067a4b62
+#10 980.8   manifest /out/strata-terminal-0.1.46.1-linux-x86_64.manifest.json
+#10 982.2 strata 0.2.1 (build 0.1.46.1; python 3.12.15 at /opt/strata/terminal/python/bin/python3)
+#10 DONE 983.1s
+
+#11 [terminal 6/6] RUN cd /opt/strata/terminal && STRATA_CONTROL_INSTALL=1 STRATA_INSTALL_DIR=/opt/strata/seed PYTHONNOUSERSITE=1       /opt/strata/terminal/python/bin/python3 -c "import setup; print(setup.get_llama_cpp())"  && rm -rf /opt/strata/seed/third_party/*.zip*  && cd /opt/strata/seed/third_party/llama.cpp  && find . -mindepth 1 -maxdepth 1 ! -name gguf-py ! -name ggml ! -name 'LICENSE*' -exec rm -rf {} +  && find ggml -mindepth 1 -depth ! -type d ! -name CMakeLists.txt -delete && find ggml -mindepth 1 -type d -empty -delete  && du -sh /opt/strata/seed
+#11 258.4   llama.cpp source:   0.01 / 0.04 GB (21%)     llama.cpp source:   0.02 / 0.04 GB (42%)     llama.cpp source:   0.03 / 0.04 GB (64%)     llama.cpp source:   0.03 / 0.04 GB (85%)     llama.cpp source:   0.04 / 0.04 GB (100%)   
+#11 1160.1   [ok] llama.cpp source downloaded
+#11 1160.5 /opt/strata/seed/third_party/llama.cpp
+#11 1160.6 1.2M	/opt/strata/seed
+#11 DONE 1160.6s
+
+#12 [stage-2 3/9] COPY --from=terminal /opt/strata/terminal /opt/strata/terminal
+#12 ...
+
+#13 [verify 2/5] COPY --from=terminal /opt/strata/terminal /opt/strata/terminal
+#13 DONE 2.1s
+
+#12 [stage-2 3/9] COPY --from=terminal /opt/strata/terminal /opt/strata/terminal
+#12 DONE 2.1s
+
+#14 [stage-2 4/9] COPY --from=terminal /opt/strata/seed /opt/strata/seed
+#14 DONE 0.1s
+
+#15 [verify 3/5] COPY terminal-src/packaging/package_engine.py terminal-src/packaging/binary_deps.py /opt/strata/terminal/packaging/
+#15 DONE 0.1s
+
+#16 [verify 4/5] COPY engine/ /engine/
+#16 DONE 1.5s
+
+#17 [verify 5/5] RUN set -e; n=0; for d in /engine/*/; do       echo "== $d";       /opt/strata/terminal/python/bin/python3 /opt/strata/terminal/packaging/package_engine.py --verify "$d";       /opt/strata/terminal/python/bin/python3 /opt/strata/terminal/packaging/binary_deps.py "$d";       n=$((n+1));     done; [ "$n" -ge 1 ] || { echo "no engine package in the build context (engine/<package>/engine-component.json)"; exit 1; }
+#17 0.096 == /engine/0.1.46.1-linux-x86_64-hip-gfx1103/
+#17 0.662 /engine/0.1.46.1-linux-x86_64-hip-gfx1103: ok (26 files, manifest sha256 67878bf39b5518df5210706119dbc369b1384ce96afc07f553d1a715ae2382ac)
+#17 0.922 /engine/0.1.46.1-linux-x86_64-hip-gfx1103/: every imported library is bundled or belongs to the OS / GPU driver
+#17 DONE 0.9s
+
+#18 [stage-2 5/9] COPY --from=verify /engine/ /opt/strata/components/engine/
+#18 DONE 1.4s
+
+#19 [stage-2 6/9] COPY docker/entrypoint.sh docker/healthcheck.sh /opt/strata/
+#19 DONE 0.0s
+
+#20 [stage-2 7/9] COPY docker/strata-wrapper.sh /usr/local/bin/strata
+#20 DONE 0.0s
+
+#21 [stage-2 8/9] RUN chmod 0755 /opt/strata/entrypoint.sh /opt/strata/healthcheck.sh /usr/local/bin/strata
+#21 DONE 0.1s
+
+#22 [stage-2 9/9] RUN set -e;     for d in /opt/strata/components/engine/*/; do       miss=$(find "$d" -type f ( -name 'strata*' -o -name '*.so' -o -name '*.so.*' ) ! -name '*.json' ! -name '*.txt' | while read -r f; do                head -c4 "$f" | grep -q ELF || continue;                LD_LIBRARY_PATH="$d" ldd "$f" 2>/dev/null | grep 'not found' | grep -v -E 'libcuda\.so|libnvidia|libnvcuvid|libze_intel_gpu|libhsa-runtime64|libdrm_amdgpu' | sed "s|^|$(basename "$f"): |";              done | sort -u);       if [ -n "$miss" ]; then echo "MISSING LIBRARIES in $d"; echo "$miss"; exit 1; fi;       echo "libraries of $d resolve inside this image";     done
+#22 0.254 libraries of /opt/strata/components/engine/0.1.46.1-linux-x86_64-hip-gfx1103/ resolve inside this image
+#22 DONE 0.3s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 9.5s done
+#23 exporting manifest sha256:c41714c1d5d95f1f0780d0dfe010a6aee865b545b87c20f10184724da9b8a26e done
+#23 exporting config sha256:9dc5e30e864075c0ca5e60d2489cfb41cbad380286d728439add74844d78e4b9 done
+#23 exporting attestation manifest sha256:891b3d9fb549fdc9388b78e508bbf843ae34eef468b86b93837ed574ff14238f done
+#23 exporting manifest list sha256:58bbe642f120209b5c912546250c52664135db71daa71caf8808f61526685573 done
+#23 naming to docker.io/library/strata:0.2.1-rocm-gfx1103 done
+#23 unpacking to docker.io/library/strata:0.2.1-rocm-gfx1103
+#23 unpacking to docker.io/library/strata:0.2.1-rocm-gfx1103 2.1s done
+#23 DONE 11.6s
+built [strata:0.2.1-rocm-gfx1103] 1331902158 bytes
+Not pushed anywhere. Size on disk: 1331902158 bytes.

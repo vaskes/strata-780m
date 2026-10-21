@@ -4,6 +4,17 @@ What a **Ryzen 7 8700G** with no discrete GPU can actually do with a 177B-class 
 measured on `llmhost2` — both with upstream **llama.cpp** and with **Strata**
 (`Niko1221/Strata`), built from source for gfx1103 and run in Docker.
 
+> ### ⚠️ Start here: [`docs/GRUB.md`](docs/GRUB.md)
+>
+> Before anything else, set the kernel parameters. Without them the GPU hangs 5–30
+> seconds into any real inference and no engine tuning will save it. The single
+> parameter that makes this possible is **`amdgpu.cwsr_enable=0`** — on gfx1103 it
+> works around a MES firmware bug. `docs/GRUB.md` has the full working cmdline, ready-to-paste
+> configs for 64 GB and 128 GB machines, the GTT sizing arithmetic, and how to verify
+> after reboot.
+>
+> Skip this and everything below is wasted work.
+
 ## Result
 
 | engine | quant | bits/weight | decode | implied expert bandwidth |
@@ -319,6 +330,7 @@ to a model this size without spending several thousand dollars on silicon.
 ## Layout
 
 ```
+docs/GRUB.md  kernel parameters — THE prerequisite, read first
 systemd/   the llama.cpp launch config for Qwen3.8-Flash-Next on the 780M
 scripts/   Strata build/run scripts, benchmarks, and the two GPU probes
 docs/      full investigation report: measurements, packaging fixes, dead ends

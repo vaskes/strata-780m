@@ -7,3 +7,5 @@ engine-pkg/
 llama-cpp-src/
 strata-bundle.tar.gz
 cpython*.tar.gz
+__pycache__/
+*.pyc

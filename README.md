@@ -323,3 +323,10 @@ systemd/   the llama.cpp launch config for Qwen3.8-Flash-Next on the 780M
 scripts/   Strata build/run scripts, benchmarks, and the two GPU probes
 docs/      full investigation report: measurements, packaging fixes, dead ends
 ```
+
+## Credits
+
+This work is a collaboration between:
+
+* **Vaskes** — Vibecoder, hardware & infrastructure, project lead, integration QA.
+* **Mavis** — AI implementation agent, powered by MiniMax M3.
